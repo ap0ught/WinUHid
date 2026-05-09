@@ -13,10 +13,14 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build WinUHid
     runs-on: windows-latest
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -26,18 +30,30 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3
       with:
         msbuild-architecture: x64
+
+    - name: Install WDK
+      shell: pwsh
+      run: |
+        winget install --source winget --exact --id Microsoft.WindowsWDK.10.0.26100 --accept-source-agreements --accept-package-agreements --silent
+
+        $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $vsPath = & $vsWhere -latest -property installationPath
+        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+        & $vsInstaller modify --installPath $vsPath --add Microsoft.VisualStudio.Component.WDK --quiet --norestart
 
     - name: Restore NuGet packages
       run: msbuild -t:restore -p:RestorePackagesConfig=true
 
     - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
+      uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11.6
 
     - name: Install vcpkg MSBuild integration
       run: ${{ github.workspace }}/vcpkg/vcpkg.exe integrate install
@@ -46,7 +62,7 @@ jobs:
       run: msbuild WinUHid.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} /m /verbosity:minimal
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: WinUHid-${{ matrix.configuration }}-${{ matrix.platform }}
         path: |

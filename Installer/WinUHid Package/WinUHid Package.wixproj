@@ -1,4 +1,4 @@
-﻿<Project Sdk="WixToolset.Sdk/6.0.0">
+<Project Sdk="WixToolset.Sdk/6.0.2">
 	<ItemGroup>
 		<None Include="WinUHidCertificate.cer" />
 	</ItemGroup>
@@ -7,6 +7,6 @@
 		<ProjectReference Include="..\..\WinUHid Driver\WinUHid Driver.vcxproj" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="WixToolset.IIS.wixext" Version="6.0.0" />
+		<PackageReference Include="WixToolset.IIS.wixext" Version="6.0.2" />
 	</ItemGroup>
 </Project>
